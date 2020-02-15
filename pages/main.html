@@ -1,0 +1,99 @@
+<ons-page ng-controller="StopSelectorCtrl as stopSel">
+    <ons-toolbar>
+        <div class="right">
+            <ons-toolbar-button>
+                日
+            </ons-toolbar-button>
+            <ons-toolbar-button>
+                En
+            </ons-toolbar-button>
+        </div>
+    </ons-toolbar>
+
+    <div style="height: 35%"></div>
+
+    <ons-list modifier="inset">
+        <ons-list-item modifier="longdivider tappable chevron"
+            ng-click="stopSel.setFrom()">
+            <div class="left">
+                {{tr.stop.from}}
+            </div>
+            <div class="right">
+                {{stopSel.direction.from.name || tr.stop.notSelected}}
+            </div>
+        </ons-list-item>
+
+        <ons-list-item modifier="longdivider tappable chevron"
+            ng-click="stopSel.setTo()">
+            <div class="left">
+                {{tr.stop.to}}
+            </div>
+            <div class="right">
+                {{stopSel.direction.to.name || tr.stop.notSelected}}
+            </div>
+        </ons-list-item>
+    </ons-list>
+
+    <ons-list modifier="inset">
+        <ons-list-item modifier="longdivider">
+            <div class="left">
+                {{tr.passenger.adults}}
+            </div>
+            <div class="right">
+                <ons-input type="number" ng-model="stopSel.adults"></ons-input>
+            </div>
+        </ons-list-item>
+
+        <ons-list-item modifier="longdivider">
+            <div class="left">
+                {{tr.passenger.children}}
+            </div>
+            <div class="right">
+                <ons-input type="number" ng-model="stopSel.children">
+                </ons-input>
+            </div>
+        </ons-list-item>
+    </ons-list>
+
+    <ons-button modifier="large"
+        ng-disabled="!stopSel.direction.from.stopName || !stopSel.direction.to.stopName"
+        ng-click="stopSel.proceed()">
+        {{tr.nav.next}}
+    </ons-button>
+
+    <ons-alert-dialog var="paymentConfirm">
+        <div class="alert-dialog-title">
+            {{tr.payment.fare}}
+        </div>
+        <div class="alert-dialog-content">
+            <h4>
+                {{stopSel.direction.from.name}} →
+                {{stopSel.direction.to.name}}
+            </h4>
+            <h3>
+                {{tr.passenger.adults}} {{stopSel.adults}} &nbsp;
+                {{tr.passenger.children}} {{stopSel.children}}
+            </h3>
+            <h1 ng-show="stopSel.amount">
+                ￥{{stopSel.amount}}-
+            </h1>
+            <h1 ng-hide="stopSel.amount">
+                {{tr.payment.calculating}}
+            </h1>
+        </div>
+        <div class="alert-dialog-footer">
+            <button class="alert-dialog-button" onclick="paymentConfirm.hide()">
+                {{tr.nav.back}}
+            </button>
+            <button class="alert-dialog-button" ng-disabled="!stopSel.amount"
+                ng-click="stopSel.purchase()">
+                <b>{{tr.payment.proceed}}</b>
+            </button>
+        </div>
+    </ons-alert-dialog>
+
+    <ons-toast var="noRoutesToast">
+        {{tr.payment.noRoute}}
+    </ons-toast>
+
+</ons-page>

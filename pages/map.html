@@ -1,0 +1,19 @@
+<ons-page ng-controller="MapCtrl as map">
+    <ons-toolbar>
+        <div class="left">
+            <ons-back-button>
+                {{tr.nav.back}}
+            </ons-back-button>
+        </div>
+    </ons-toolbar>
+
+    <div id="map"></div>
+
+    <div id="active-stop" ng-show="map.activeStop">
+        {{ map.activeStop.name || map.activeStop.stopName}}
+        <ons-button modifier="large" ng-disabled="!map.activeStop.name"
+            ng-click="map.setStop()">
+            {{tr.stop.set}}
+        </ons-button>
+    </div>
+</ons-page>

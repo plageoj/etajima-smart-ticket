@@ -1,0 +1,30 @@
+ons-list[modifier="inset"] {
+    margin-top: 2em;
+}
+
+ons-button[modifier="large"] {
+    position: fixed;
+    bottom: .5em;
+    width: calc(100% - 1em);
+    left: .5em;
+}
+
+ons-input[type="number"] input {
+    text-align: right;
+}
+
+#map {
+    width: 100%;
+    height: 100%;
+}
+
+#active-stop {
+    position: fixed;
+    bottom: 0;
+    height: 3.4em;
+    background: rgba(255, 255, 255, .9);
+    width: 100%;
+    text-align: center;
+    padding-top: 1rem;
+    font-size: 2em;
+}

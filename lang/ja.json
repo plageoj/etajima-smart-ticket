@@ -1,0 +1,28 @@
+{
+    "stop": {
+        "from": "出発",
+        "to": "到着",
+        "notSelected": "選択されていません",
+        "set": "設定"
+    },
+    "passenger": {
+        "adults": "大人",
+        "children": "子供"
+    },
+    "nav": {
+        "back": "戻る",
+        "next": "次へ"
+    },
+    "payment": {
+        "fare": "運賃",
+        "proceed": "支払う",
+        "calculating": "計算中…",
+        "noRoute": "直行便がありません！"
+    },
+    "notification": {
+        "allow": "許可",
+        "deny": "許可しない",
+        "reason": "バス停に到着する前にお知らせします",
+        "permission": "通知を許可"
+    }
+}

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html ng-app="prepay">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>運賃前払い</title>
+
+    <link rel="stylesheet" href="node_modules/onsenui/css/onsenui.min.css">
+    <link rel="stylesheet"
+        href="node_modules/onsenui/css/onsen-css-components.min.css">
+    <link rel="stylesheet" href="style.css">
+
+    <script src="node_modules/angular/angular.min.js"></script>
+    <script src="node_modules/onsenui/js/onsenui.min.js"></script>
+    <script
+        src="node_modules/angularjs-onsenui/dist/angularjs-onsenui.min.js"></script>
+    <script src="node_modules/faunadb/dist/faunadb.js"></script>
+    <script src="js/lang.js"></script>
+    <script src="js/app.js"></script>
+
+    <script
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDV-PxCA9xceAtEt8rnoptlkyOD0X6jlfs"
+        async defer></script>
+</head>
+
+<body ng-controller="LangCtrl as tr">
+    <ons-navigator page="pages/main.html" var="nav"></ons-navigator>
+
+    <ons-alert-dialog var="requestNotificationPermission">
+        <div class="alert-dialog-title">
+            {{tr.notification.permission}}
+        </div>
+        <div class="alert-dialog-content">
+            {{tr.notification.reason}}
+        </div>
+        <div class="alert-dialog-footer">
+            <button class="alert-dialog-button"
+                onclick="requestNotificationPermission.hide()">
+                {{tr.notification.deny}}
+            </button>
+            <button class="alert-dialog-button"
+                onclick="Notification.requestPermission(),requestNotificationPermission.hide()">
+                <b>{{tr.notification.allow}}</b>
+            </button>
+        </div>
+    </ons-alert-dialog>
+</body>
+
+</html>

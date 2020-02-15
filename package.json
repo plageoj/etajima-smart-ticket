@@ -1,0 +1,17 @@
+{
+  "name": "ticket_prepay",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "angular": "^1.7.9",
+    "angularjs-onsenui": "^1.0.1",
+    "faunadb": "^2.11.1",
+    "onsenui": "^2.10.10"
+  }
+}
