@@ -1,0 +1,4 @@
+!node_modules/angular
+!node_modules/onsenui
+!node_modules/faunadb
+!node_modules/angularjs-onsenui

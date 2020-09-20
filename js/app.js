@@ -1,23 +1,12 @@
-let stops = [];
 const direction = {};
 let routeCandidates = [];
+let paymentInfo = {};
 
 const fauna = new faunadb.Client({ secret: 'fnADkpdWVHACCjDqtIAcKJmVzYK4uIJW-wvYfURK' });
 const query = faunadb.query;
 
 angular.module('prepay', ['onsen', 'lang'])
-    .controller('StopSelectorCtrl', function ($http, $scope) {
-        $http.get('https://v2-api.sheety.co/1a49d70e79b66071f353ae977cd0e2fb/%E3%83%90%E3%82%B9%E5%81%9C/stop').then(
-            data => {
-                stops = data.data.stop.map(d => {
-                    delete d.stop_code;
-                    delete d.stop_desc;
-                    delete d.stop_url;
-                    return d;
-                });
-            }
-        );
-
+    .controller('StopSelectorCtrl', function ($scope) {
         this.direction = direction;
         this.adults = 1;
         this.children = 0;
@@ -42,45 +31,62 @@ angular.module('prepay', ['onsen', 'lang'])
         };
 
         this.proceed = async () => {
-            const findStop = name => stops.filter(sp => sp.stopName === name);
+            const findStop = async name => await fauna.query(
+                query.Select('data',
+                    query.Map(
+                        query.Paginate(
+                            query.Match(query.Index('stops_by_stopname'), name)
+                        ),
+                        query.Lambda('x', query.Select('data', query.Get(query.Var('x'))))
+                    )
+                )
+            );
 
-            const fromCandidates = findStop(direction.from.stopName);
-            const toCandidates = findStop(direction.to.stopName);
-
-            const fares = {};
+            const fromCandidates = await findStop(direction.from.stopName);
+            const toCandidates = await findStop(direction.to.stopName);
 
             paymentConfirm.show();
             this.amount = null;
 
-            const data = await $http.get('https://v2-api.sheety.co/1a49d70e79b66071f353ae977cd0e2fb/%E3%83%90%E3%82%B9%E5%81%9C/fare');
-            for (let fare of data.data.fare) {
-                fares[fare.fareId] = fare.price;
-            }
-
-            let fareResult = [];
-
             for (let origin of fromCandidates) {
-                const data = await $http.get('https://v2-api.sheety.co/1a49d70e79b66071f353ae977cd0e2fb/バス停/fareRule', {
-                    params: {
-                        originId: origin.stopId
-                    }
-                })
-                const rules = data.data.fareRule;
                 for (let destination of toCandidates) {
-                    const fareCandidates = rules.filter(rl => rl.destinationId === destination.stopId)
-                        .map(rl => {
-                            rl.fare = fares[rl.fareId];
-                            return rl;
-                        });
-                    fareResult.push(...fareCandidates);
+                    const data = await fauna.query(
+                        query.Map(
+                            query.Paginate(
+                                query.Match(query.Index('farerules_by_originid_and_destinationid'), [origin.stopId, destination.stopId])
+                            ),
+                            query.Lambda('x', query.Select('data', query.Get(query.Var('x'))))
+                        )
+                    );
+
+                    routeCandidates.push(data.data);
                 }
             }
-            fareResult = fareResult.sort((a, b) => a.fare - b.fare);
-            routeCandidates = fareResult;
+            routeCandidates = routeCandidates.flat();
+            let fareResult = [];
+            for (let rule of routeCandidates) {
+                const fare = await fauna.query(
+                    query.Map(
+                        query.Paginate(
+                            query.Match(query.Index('fares_by_fareid'), rule.fareId)
+                        ),
+                        query.Lambda('x', query.Select('data', query.Get(query.Var('x'))))
+                    )
+                );
+
+                fareResult.push(fare.data);
+            }
+
+            fareResult = fareResult.flat().sort((a, b) => a.price - b.price);
 
             if (fareResult.length) {
                 $scope.$apply(() => {
-                    this.amount = Math.round(fareResult[0].fare * (this.adults * 2 + this.children) / 20 + .49) * 10;
+                    this.amount = Math.round(fareResult[0].price * (this.adults * 2 + this.children) / 20 + .49) * 10;
+                    paymentInfo = {
+                        amount: this.amount,
+                        adults: this.adults,
+                        children: this.children
+                    };
                 });
             } else {
                 paymentConfirm.hide();
@@ -95,17 +101,20 @@ angular.module('prepay', ['onsen', 'lang'])
             nav.pushPage('pages/riding.html');
         };
     })
-    .controller('MapCtrl', function ($scope, $http) {
+    .controller('MapCtrl', function ($scope) {
         this.activeStop = null;
         let activeMarker = null;
 
         const getName = async (name, lang) => {
-            const data = await $http.get('https://v2-api.sheety.co/1a49d70e79b66071f353ae977cd0e2fb/バス停/translations', {
-                params: {
-                    transId: name
-                }
-            })
-            return data.data.translations.filter(tr => tr.lang === lang);
+            const data = await fauna.query(
+                query.Map(
+                    query.Paginate(
+                        query.Match(query.Index('translations_by_transid_and_lang'), [name, lang])
+                    ),
+                    query.Lambda('x', query.Select('data', query.Get(query.Var('x'))))
+                )
+            );
+            return data.data.flat();
         };
 
         setTimeout(() => {
@@ -114,48 +123,198 @@ angular.module('prepay', ['onsen', 'lang'])
                 zoom: 15
             });
 
-            for (let stop of stops) {
-                const latLng = new google.maps.LatLng(stop.stopLat, stop.stopLon);
-                const marker = new google.maps.Marker({
-                    position: latLng,
-                    map: map,
-                    title: stop.stopName
-                });
-                marker.addListener('click', () => {
-                    $scope.$apply(() => {
-                        this.activeStop = stop;
-                    });
-                    getName(stop.stopName, localStorage.getItem('lang')).then(data => {
-                        $scope.$apply(() => {
-                            stop.name = data[0].translation;
+            let tmr = 0;
+            const markerList = new Map();
+
+            const plotPoints = async () => {
+                const bound = map.getBounds();
+                const ne = bound.getNorthEast(), sw = bound.getSouthWest();
+
+                // console.log(sw.lat(), sw.lng(), ne.lat(), ne.lng());
+
+                const stops = await fauna.query(
+                    query.Map(
+                        query.Intersection(
+                            query.Select('data',
+                                query.Map(
+                                    query.Paginate(
+                                        query.Match(query.Index('stops_by_lon')),
+                                        { after: sw.lng(), size: 300 }
+                                    ),
+                                    query.Lambda('x', query.Select(1, query.Var('x')))
+                                )
+                            ),
+                            query.Select('data',
+                                query.Map(
+                                    query.Paginate(
+                                        query.Match(query.Index('stops_by_lat')),
+                                        { after: sw.lat(), size: 300 }
+                                    ),
+                                    query.Lambda('x', query.Select(1, query.Var('x')))
+                                )
+                            ),
+
+                            query.Difference(
+                                query.Select('data',
+                                    query.Map(
+                                        query.Paginate(
+                                            query.Match(query.Index('all_stops')),
+                                            { size: 300 }
+                                        ),
+                                        query.Lambda('x', query.Var('x'))
+                                    )
+                                ),
+                                query.Select('data',
+                                    query.Map(
+                                        query.Paginate(
+                                            query.Match(query.Index('stops_by_lat')),
+                                            { after: ne.lat(), size: 300 }
+                                        ),
+                                        query.Lambda('x', query.Var('x'))
+                                    )
+                                )
+                            ),
+                            query.Difference(
+                                query.Select('data',
+                                    query.Map(
+                                        query.Paginate(
+                                            query.Match(query.Index('all_stops')),
+                                            { size: 300 }
+                                        ),
+                                        query.Lambda('x', query.Var('x'))
+                                    )
+                                ),
+                                query.Select('data',
+                                    query.Map(
+                                        query.Paginate(
+                                            query.Match(query.Index('stops_by_lon')),
+                                            { after: ne.lng(), size: 300 }
+                                        ),
+                                        query.Lambda('x', query.Var('x'))
+                                    )
+                                )
+                            )
+                        ),
+                        query.Lambda('x', query.Select('data', query.Get(query.Var('x'))))
+                    )
+                );
+
+                for (let stop of stops) {
+                    const latLng = new google.maps.LatLng(stop.stopLat, stop.stopLon);
+
+                    if (!markerList.has(latLng)) {
+                        markerList.set(latLng, true);
+
+                        const marker = new google.maps.Marker({
+                            position: latLng,
+                            map: map,
+                            title: stop.stopName
                         });
-                    });
-                    if (activeMarker) {
-                        activeMarker.setAnimation(google.maps.Animation.NONE);
+                        marker.addListener('click', () => {
+                            $scope.$apply(() => {
+                                this.activeStop = stop;
+                            });
+                            getName(stop.stopName, localStorage.getItem('lang')).then(data => {
+                                $scope.$apply(() => {
+                                    stop.name = data[0].translation;
+                                });
+                            });
+                            if (activeMarker) {
+                                activeMarker.setAnimation(google.maps.Animation.NONE);
+                            }
+                            activeMarker = marker;
+                            marker.setAnimation(google.maps.Animation.BOUNCE)
+                        });
                     }
-                    activeMarker = marker;
-                    marker.setAnimation(google.maps.Animation.BOUNCE)
-                });
-            }
-        }, 1000);
+                }
+            };
+
+
+            map.addListener('center_changed', async () => {
+                clearTimeout(tmr);
+                tmr = setTimeout(await plotPoints, 500);
+            });
+            setTimeout(plotPoints, 500);
+
+        }, 700);
 
         this.setStop = () => {
             direction[sessionStorage.getItem('direction')] = this.activeStop;
             nav.popPage();
         };
     })
-    .controller('RidingCtrl', function ($http, $scope) {
+    .controller('RidingCtrl', function ($scope) {
         if (Notification.permission !== 'granted') {
             requestNotificationPermission.show();
         }
 
-        const init = async () => {
-            for (let route of routeCandidates) {
-                const data = await $http.get('https://v2-api.sheety.co/1a49d70e79b66071f353ae977cd0e2fb/バス停/stopTimes', { params: { stopId: route.originId } });
+        this.direction = direction;
 
-                data.data.stopTimes.filter(st => st);
+        const init = async () => {
+            const data = await fauna.query(
+                query.Take(1, query.Intersection(
+                    query.Select('data',
+                        query.Map(
+                            query.Paginate(
+                                query.Match(query.Index('stoptimes_by_stopid_uniq_tripid'), direction.from.stopId),
+                                { size: 100 }
+                            ),
+                            query.Lambda('x', query.Select(1, query.Var('x')))
+                        )),
+                    query.Select('data',
+                        query.Map(
+                            query.Paginate(
+                                query.Match(query.Index('stoptimes_by_stopid_uniq_tripid'), direction.to.stopId),
+                                { size: 100 }
+                            ),
+                            query.Lambda('x', query.Select(1, query.Var('x')))
+                        )
+                    )
+                ))
+            );
+
+            const trip = await fauna.query(
+                query.Select('data',
+                    query.Map(
+                        query.Paginate(
+                            query.Union(
+                                query.Match(query.Index('stoptimes_by_stopid_and_tripid'), [direction.from.stopId, data[0]]),
+                                query.Match(query.Index('stoptimes_by_stopid_and_tripid'), [direction.to.stopId, data[0]])
+                            ),
+                            { size: 2 }
+                        ),
+                        query.Lambda('x', query.Select('data', query.Get(query.Var('x'))))
+                    )
+                )
+            );
+            console.log(trip);
+
+            $scope.$apply(() => {
+                this.busDisplay = trip[0].stopHeadsign;
+                this.remainingStops = trip[1].stopSequence - trip[0].stopSequence;
+                this.eta = (new Date(`2020/2/16 ${trip[1].departureTime}`) - new Date(`2020/2/16 ${trip[0].arrivalTime}`)) / 60000;
+            });
+        };
+
+        this.decrease = tr => {
+            this.remainingStops--;
+            if (this.remainingStops === 1) {
+                new Notification(
+                    tr.notification.title, {
+                    body: tr.notification.body.prefix + direction.to.name + tr.notification.body.suffix,
+                    lang: localStorage.getItem('lang')
+                });
+            }
+
+            if (this.remainingStops === 0) {
+                nav.pushPage('pages/arrival.html');
             }
         };
 
         init();
+    })
+    .controller('ArrivalCtrl', function () {
+        this.direction = direction;
+        this.payment = paymentInfo;
+        this.date = new Date();
     })

@@ -1,0 +1,57 @@
+{
+    "etajimaSmartTicket": "Etajima Smart Ticket",
+    "stop": {
+        "from": "From",
+        "to": "To",
+        "notSelected": "(Empty)",
+        "set": "Set",
+        "select": "Select a bus stop",
+        "heading": {
+            "prefix": "Heading to",
+            "suffix": ""
+        },
+        "count": {
+            "prefix": "",
+            "suffix": "stops left"
+        },
+        "eta": {
+            "prefix": "ETA:",
+            "suffix": "min."
+        }
+    },
+    "passenger": {
+        "adults": {
+            "prefix": "",
+            "suffix": "adults"
+        },
+        "children": {
+            "prefix": "",
+            "suffix": "children"
+        }
+    },
+    "nav": {
+        "back": "Back",
+        "next": "Next",
+        "done": "Exit"
+    },
+    "payment": {
+        "fare": "Fare",
+        "proceed": "Purchase",
+        "calculating": "Calcurating…",
+        "noRoute": "No direct route found！"
+    },
+    "notification": {
+        "allow": "Allow",
+        "deny": "Deny",
+        "reason": "We'll notify you just before arrival.",
+        "permission": "Allow recieving notifications?",
+        "title": "Get off at the next stop!",
+        "body": {
+            "prefix": "The bus will arrive at your destination [",
+            "suffix": "] soon"
+        }
+    },
+    "arrival": {
+        "showTheScreenToTheDriver": "Show this screen to the driver to get off"
+    }
+}

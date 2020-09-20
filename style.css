@@ -13,6 +13,15 @@ ons-input[type="number"] input {
     text-align: right;
 }
 
+ons-icon {
+    width: 0.5rem;
+    text-align: right;
+}
+
+ons-toolbar-button img {
+    height: 1em;
+}
+
 #map {
     width: 100%;
     height: 100%;

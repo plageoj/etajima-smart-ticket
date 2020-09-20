@@ -1,3 +1,33 @@
 <ons-page ng-controller="RidingCtrl as riding">
+    <ons-toolbar>
+        <div class="center">{{tr.etajimaSmartTicket}}</div>
+    </ons-toolbar>
+    <div style="text-align: center; margin-top: 40%">
+        <p>
+            {{riding.busDisplay}}
+        </p>
+        <h2>
+            {{tr.stop.heading.prefix}}
+            {{riding.direction.to.name}}
+            {{tr.stop.heading.suffix}}
+        </h2>
+        <h1 ng-show="riding.remainingStops">
+            <small>
+                {{tr.stop.count.prefix}}
+            </small>
+            {{riding.remainingStops}}
+            <small>
+                {{tr.stop.count.suffix}}
+            </small>
+        </h1>
+        <h3>
+            {{tr.stop.eta.prefix}}
+            {{riding.eta}}
+            {{tr.stop.eta.suffix}}
+        </h3>
+    </div>
 
+    <ons-button modifier="large" ng-click="riding.decrease(tr)">
+        到着テスト
+    </ons-button>
 </ons-page>

@@ -1,11 +1,16 @@
 <ons-page ng-controller="StopSelectorCtrl as stopSel">
     <ons-toolbar>
+        <div class="center">
+            {{tr.etajimaSmartTicket}}
+        </div>
         <div class="right">
-            <ons-toolbar-button>
-                日
+            <ons-toolbar-button ng-click="tr.setLang('ja')">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/9/9e/Flag_of_Japan.svg"
+                    alt="">
             </ons-toolbar-button>
-            <ons-toolbar-button>
-                En
+            <ons-toolbar-button ng-click="tr.setLang('en')">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/a/a4/Flag_of_the_United_States.svg"
+                    alt="">
             </ons-toolbar-button>
         </div>
     </ons-toolbar>
@@ -16,6 +21,9 @@
         <ons-list-item modifier="longdivider tappable chevron"
             ng-click="stopSel.setFrom()">
             <div class="left">
+                <ons-icon icon="map-marker"></ons-icon>
+            </div>
+            <div class="center">
                 {{tr.stop.from}}
             </div>
             <div class="right">
@@ -26,6 +34,9 @@
         <ons-list-item modifier="longdivider tappable chevron"
             ng-click="stopSel.setTo()">
             <div class="left">
+                <ons-icon icon="directions"></ons-icon>
+            </div>
+            <div class="center">
                 {{tr.stop.to}}
             </div>
             <div class="right">
@@ -37,20 +48,28 @@
     <ons-list modifier="inset">
         <ons-list-item modifier="longdivider">
             <div class="left">
-                {{tr.passenger.adults}}
+                <ons-icon icon="male"></ons-icon>
+            </div>
+            <div class="center">
+                {{tr.passenger.adults.prefix}}
             </div>
             <div class="right">
                 <ons-input type="number" ng-model="stopSel.adults"></ons-input>
+                {{tr.passenger.adults.suffix}}
             </div>
         </ons-list-item>
 
         <ons-list-item modifier="longdivider">
             <div class="left">
-                {{tr.passenger.children}}
+                <ons-icon icon="baby"></ons-icon>
+            </div>
+            <div class="center">
+                {{tr.passenger.children.prefix}}
             </div>
             <div class="right">
                 <ons-input type="number" ng-model="stopSel.children">
                 </ons-input>
+                {{tr.passenger.children.suffix}}
             </div>
         </ons-list-item>
     </ons-list>
@@ -71,8 +90,13 @@
                 {{stopSel.direction.to.name}}
             </h4>
             <h3>
-                {{tr.passenger.adults}} {{stopSel.adults}} &nbsp;
-                {{tr.passenger.children}} {{stopSel.children}}
+                {{tr.passenger.adults.prefix}}
+                {{stopSel.adults}}
+                {{tr.passenger.adults.suffix}}
+                &nbsp;
+                {{tr.passenger.children.prefix}}
+                {{stopSel.children}}
+                {{tr.passenger.children.suffix}}
             </h3>
             <h1 ng-show="stopSel.amount">
                 ￥{{stopSel.amount}}-
@@ -85,8 +109,9 @@
             <button class="alert-dialog-button" onclick="paymentConfirm.hide()">
                 {{tr.nav.back}}
             </button>
-            <button class="alert-dialog-button" ng-disabled="!stopSel.amount"
+            <button class="alert-dialog-button" ng-show="stopSel.amount"
                 ng-click="stopSel.purchase()">
+                <ons-icon icon="credit-card"></ons-icon> &nbsp;
                 <b>{{tr.payment.proceed}}</b>
             </button>
         </div>

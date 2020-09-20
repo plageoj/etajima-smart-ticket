@@ -1,0 +1,26 @@
+<ons-page ng-controller="ArrivalCtrl as arrival">
+    <div style="margin: 30% 0; text-align: center; font-size: 2em;">
+        <h2>
+            {{arrival.direction.from.stopName}} →
+            {{arrival.direction.to.stopName}}
+        </h2>
+        <h2>
+            大人 {{arrival.payment.adults}} 人
+            &nbsp;
+            子供 {{arrival.payment.children}} 人
+        </h2>
+        <hr>
+        <h1>支払済</h1>
+        <hr>
+        <p>{{arrival.date|date: 'yy.MM.dd. HH:mm'}}</p>
+    </div>
+    <div id="active-stop">
+        <small style="font-size: 1rem;">
+            {{tr.arrival.showTheScreenToTheDriver}}
+        </small>
+        <ons-button modifier="large"
+            onclick="nav.resetToPage('pages/main.html')">
+            {{tr.nav.done}}
+        </ons-button>
+    </div>
+</ons-page>

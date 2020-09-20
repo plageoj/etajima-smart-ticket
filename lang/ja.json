@@ -1,17 +1,38 @@
 {
+    "etajimaSmartTicket": "江田島スマートチケット",
     "stop": {
         "from": "出発",
         "to": "到着",
         "notSelected": "選択されていません",
-        "set": "設定"
+        "set": "設定",
+        "select": "停留所を指定",
+        "heading": {
+            "prefix": "",
+            "suffix": "まで"
+        },
+        "count": {
+            "prefix": "あと",
+            "suffix": "停留所"
+        },
+        "eta": {
+            "prefix": "約",
+            "suffix": "分"
+        }
     },
     "passenger": {
-        "adults": "大人",
-        "children": "子供"
+        "adults": {
+            "prefix": "大人",
+            "suffix": "人"
+        },
+        "children": {
+            "prefix": "子供",
+            "suffix": "人"
+        }
     },
     "nav": {
         "back": "戻る",
-        "next": "次へ"
+        "next": "次へ",
+        "done": "終了"
     },
     "payment": {
         "fare": "運賃",
@@ -23,6 +44,14 @@
         "allow": "許可",
         "deny": "許可しない",
         "reason": "バス停に到着する前にお知らせします",
-        "permission": "通知を許可"
+        "permission": "通知を許可",
+        "title": "次で降りてください",
+        "body": {
+            "prefix": "まもなく",
+            "suffix": "に到着します"
+        }
+    },
+    "arrival": {
+        "showTheScreenToTheDriver": "この画面を運転手に見せて降車してください"
     }
 }
